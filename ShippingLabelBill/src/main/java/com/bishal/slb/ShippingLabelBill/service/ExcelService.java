@@ -111,7 +111,8 @@ public class ExcelService {
                 detailsList.add(label);
             }
 
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             logger.error("Failed to read from Excel file: {}", e.getMessage(), e);
         }
 
@@ -154,7 +155,8 @@ public class ExcelService {
                 }
             }
 
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             logger.error("Error processing Excel for PDF generation", e);
         }
     }
