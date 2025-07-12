@@ -46,7 +46,7 @@ This project is built with Spring Boot and utilizes the following key dependenci
 1.  **Clone the Repository:**
 
     ```bash
-    git clone [[https://github.com/bishalganai05/ShippingLabelBill.git](https://github.com/bishalganai05/ShippingLabelBill.git)](https://github.com/bishalganai05/ShippingLabelBill.git)
+    git clone https://github.com/bishalganai05/ShippingLabelBill.git
     cd ShippingLabelBill
     ```
 
