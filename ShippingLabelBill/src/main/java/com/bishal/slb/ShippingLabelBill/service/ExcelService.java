@@ -119,19 +119,20 @@ public class ExcelService {
         return detailsList;
     }
     
-    public void generatePdfFromExcel() {
-        File file = new File(excelPath);
-        if (!file.exists()) {
-            logger.warn("Excel file not found: {}", excelPath);
-            return;
-        }
+    public void generatePdfFromExcel(String targetEmailId) {
+        File file = new File("ShippingData.xlsx"); 
 
         try (FileInputStream fis = new FileInputStream(file);
              Workbook workbook = new XSSFWorkbook(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+            boolean emailFound = false;
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue;
+
+                String emailId = row.getCell(7).getStringCellValue();
+                if (!emailId.equalsIgnoreCase(targetEmailId)) continue;
 
                 ShippingDetails label = new ShippingDetails();
                 label.setFromAddress(row.getCell(0).getStringCellValue());
@@ -141,25 +142,34 @@ public class ExcelService {
                 label.setProductID(row.getCell(4).getStringCellValue());
                 label.setProductName(row.getCell(5).getStringCellValue());
                 label.setProductType(row.getCell(6).getStringCellValue());
-                label.setEmailID(row.getCell(7).getStringCellValue());
+                label.setEmailID(emailId);
 
                 File pdfFile = singlePDFGenerator.createPdf(label);
-
-                try (InputStream iStream = new FileInputStream(pdfFile)) {
+                try (InputStream inputStream = new FileInputStream(pdfFile)) {
                     emailService.sendMailWithAttachmentFile(
-                        label.getEmailID(), "Spring Boot Application", "New Shipping Label", iStream
+                            label.getEmailID(),
+                            "Shipping Label",
+                            "Please find your shipping label attached.",
+                            inputStream
                     );
-                    logger.info("Email sent to {}", label.getEmailID());
+                    logger.info("PDF generated and email sent to {}", label.getEmailID());
+                    emailFound = true;
                 } catch (Exception e) {
-                    logger.error("Failed to send email to {}", label.getEmailID(), e);
+                    logger.error("Error sending email to {}", label.getEmailID(), e);
                 }
+                break; // Only process the first matching email
             }
 
-        } 
-        catch (Exception e) {
-            logger.error("Error processing Excel for PDF generation", e);
+            if (!emailFound) {
+                throw new RuntimeException("Email ID not found in Excel: " + targetEmailId);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing Excel for email: {}", targetEmailId, e);
+            throw new RuntimeException(e);
         }
     }
+
 
     private void createHeaderRow(Sheet sheet) {
         Row header = sheet.createRow(0);
